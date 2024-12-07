@@ -74,7 +74,9 @@ def juego(env, ganancias):
     """Simula un juego entre el humano y el robot."""
     n = random.choice([4, 5, 6, 8, 10, 12, 15])  # Selección de tablero
     tiempo_humano = humano_resuelve(n)
+    print(f"El humano resolvió el problema de las {n} reinas en {tiempo_humano:.2f} segundos.")
     tiempo_robot = robot_resuelve(n)
+    print(f"El robot resolvió el problema de las {n} reinas en {tiempo_robot:.2f} segundos.")
 
     if tiempo_humano < tiempo_robot:
         ganancias[0] += 30  # Humano gana
