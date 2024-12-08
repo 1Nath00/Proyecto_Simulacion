@@ -2,6 +2,7 @@ import simpy
 import random
 import time
 
+
 def humano_resuelve(n):
     """Simula la resolución del problema por el humano usando un enfoque determinista."""
     start = time.time()
@@ -35,13 +36,15 @@ def humano_resuelve(n):
     # Devolver el tiempo que tomó resolverlo
     return time.time() - start
 
-def robot_resuelve(n, max_intentos=1000):
+
+def robot_resuelve(n, max_intentos=10000):
     """Simula la resolución del problema por el robot usando el enfoque Las Vegas."""
     start = time.time()
 
     for intento in range(max_intentos):
         tablero = [-1] * n  # Inicializar tablero con -1 (sin reinas colocadas)
-        posiciones_disponibles = list(range(n))  # Todas las columnas disponibles
+        # Todas las columnas disponibles
+        posiciones_disponibles = list(range(n))
 
         valido = True
         for fila in range(n):
@@ -70,29 +73,43 @@ def robot_resuelve(n, max_intentos=1000):
     # Si no se encuentra solución en los intentos permitidos
     return time.time() - start
 
+
 def juego(env, ganancias):
     """Simula un juego entre el humano y el robot."""
     n = random.choice([4, 5, 6, 8, 10, 12, 15])  # Selección de tablero
     tiempo_humano = humano_resuelve(n)
-    print(f"El humano resolvió el problema de las {n} reinas en {tiempo_humano:.2f} segundos.")
+    print(f"El humano: {n} reinas en {tiempo_humano:.10f} segundos")
     tiempo_robot = robot_resuelve(n)
-    print(f"El robot resolvió el problema de las {n} reinas en {tiempo_robot:.2f} segundos.")
+    print(f"El robot: {n} reinas en {tiempo_robot:.10f} segundos")
 
     if tiempo_humano < tiempo_robot:
         ganancias[0] += 30  # Humano gana
+        print("Humano Gana +30")
     else:
         ganancias[0] -= 10  # Robot gana
+        print("Humano pierde -10")
 
-    yield env.timeout(random.uniform(10, 30))  # Tiempo de llegada de un nuevo robot
+    # Tiempo de llegada de un nuevo robot
+    yield env.timeout(random.uniform(10, 30))
+
 
 def simulacion():
     """Configura y ejecuta la simulación."""
     env = simpy.Environment()
     ganancias = [0]  # Ganancias acumuladas
-    for _ in range(100):  # Número de juegos en 8 horas
-        env.process(juego(env, ganancias))
-    env.run(until=8 * 3600)  # 8 horas
+
+    def generar_juegos(env, ganancias):
+        """Genera nuevos juegos de manera continua mientras haya tiempo."""
+        while True:
+            env.process(juego(env, ganancias))
+            # Tiempo entre el inicio de cada juego
+            yield env.timeout(random.uniform(1, 5))
+
+    # Iniciar el generador de juegos
+    env.process(generar_juegos(env, ganancias))
+    env.run(until=3600*8)  # Simular por 8 horas
     print(f"Ganancia total: {ganancias[0]}")
+
 
 if __name__ == "__main__":
     simulacion()
