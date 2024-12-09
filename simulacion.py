@@ -66,13 +66,16 @@ def robot_resuelve(n, max_intentos=10000):
     return time.time() - start
 
 
-def juego(env, ganancias):
+def juego(env, ganancias, tiempos_humanos, tiempos_robot):
     """Simula un juego entre el humano y el robot."""
     n = random.choice([4, 5, 6, 8, 10, 12, 15])
     tiempo_humano = humano_resuelve(n)
     print(f"El humano: {n} reinas en {tiempo_humano:.10f} segundos")
     tiempo_robot = robot_resuelve(n)
     print(f"El robot: {n} reinas en {tiempo_robot:.10f} segundos")
+
+    tiempos_humanos.append(tiempo_humano)
+    tiempos_robot.append(tiempo_robot)
 
     if tiempo_humano < tiempo_robot:
         ganancias[0] += 30
@@ -88,14 +91,26 @@ def simulacion(horas):
     """Configura y ejecuta la simulación."""
     env = simpy.Environment()
     ganancias = [0]
+    tiempos_humanos = []
+    tiempos_robot = []
 
-    def generar_juegos(env, ganancias):
+    def generar_juegos(env, ganancias, tiempos_humanos, tiempos_robot):
         while True:
-            env.process(juego(env, ganancias))
+            env.process(juego(env, ganancias, tiempos_humanos, tiempos_robot))
             yield env.timeout(random.uniform(1, 5))
 
-    env.process(generar_juegos(env, ganancias))
+    env.process(generar_juegos(env, ganancias, tiempos_humanos, tiempos_robot))
     env.run(until=horas * 3600)
+
+    # Calcular promedios
+    if tiempos_humanos and tiempos_robot:
+        promedio_humano = sum(tiempos_humanos) / len(tiempos_humanos)
+        promedio_robot = sum(tiempos_robot) / len(tiempos_robot)
+        print(f"Promedio Humano: {promedio_humano:.10f}")
+        print(f"Promedio Robot: {promedio_robot:.10f}")
+    else:
+        print("No se pudo calcular los promedios.")
+
     print(f"Ganancia total: {ganancias[0]}")
 
 
