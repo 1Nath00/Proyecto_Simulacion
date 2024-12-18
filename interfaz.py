@@ -8,6 +8,9 @@ import matplotlib.pyplot as plt
 def ejecutar_simulacion(horas):
     try:
         # Ejecutar el script de simulación y capturar la salida
+        messagebox.showinfo(
+            "Advertencia", "simulación en proceso, esto tardara la cantidad de horas que usted escogio en minutos"
+        )
         resultado = subprocess.run(
             ["python", "simulacion.py", str(horas)],
             capture_output=True,
